@@ -8,10 +8,10 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pdf-metadata.pages.dev/">
 <meta property="og:title" content="PDFメタデータ編集ツール">
-<meta property="og:description" content="PDFのタイトル・作成者・キーワードなどの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル・キーワード設定にも使えます。送信なし・ローカルで完結。">
+<meta property="og:description" content="PDFのタイトル・作成者などの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル設定にも使えます。フォルダを選んで中のPDFのメタデータを一覧表示することもできます。送信なし・ローカルで完結。">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="PDFメタデータ編集ツール">
-<meta name="twitter:description" content="PDFのタイトル・作成者・キーワードなどの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル・キーワード設定にも使えます。送信なし・ローカルで完結。">
+<meta name="twitter:description" content="PDFのタイトル・作成者などの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル設定にも使えます。フォルダを選んで中のPDFのメタデータを一覧表示することもできます。送信なし・ローカルで完結。">
 <!-- ライブラリはCDN。※PDF自体はどこにも送信されません。読み込むのはライブラリのJSだけです。 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="style.css">
@@ -20,7 +20,7 @@
 <div class="wrap">
 
   <h1 class="page-title">PDFメタデータ編集</h1>
-  <p class="page-desc">PDFの「文書のプロパティ」（タイトル・作成者・件名・キーワードなど）を編集します。個人情報が入っている項目を消す、インターネットに公開するときに検索されやすいタイトルを付ける、といった用途に使えます。処理はこのブラウザの中だけで行われ、外部には送信されません。</p>
+  <p class="page-desc">PDFの「文書のプロパティ」（タイトル・作成者など）を編集します。個人情報が入っている項目を消す、インターネットに公開するときに検索されやすいタイトルを付ける、といった用途に使えます。処理はこのブラウザの中だけで行われ、外部には送信されません。</p>
 
   <!-- ① ファイル選択 -->
   <div class="card" id="uploadCard">
@@ -32,10 +32,32 @@
       <div class="filename" id="filename" hidden></div>
       <input type="file" id="fileInput" accept="application/pdf">
     </label>
+
+    <div class="or-divider"><span>または</span></div>
+
+    <button type="button" class="btn-outline btn-big" id="pickFolderBtn">
+      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/>
+      </svg>
+      <span>フォルダを選んで一覧表示</span>
+    </button>
+    <input type="file" id="folderInput" webkitdirectory multiple hidden>
+    <p class="field-hint-plain">フォルダ内のPDFのタイトル・作成者を一覧表示し、1件ずつ編集できます</p>
+  </div>
+
+  <!-- ①' フォルダ内一覧 -->
+  <div class="card" id="folderListCard" hidden>
+    <div class="msec">フォルダ内のPDF</div>
+    <p class="field-hint-plain" id="folderListSummary"></p>
+    <div class="folder-list" id="folderList"></div>
+    <div class="actions-row">
+      <button type="button" class="btn-outline" id="folderBackBtn">別のファイル・フォルダを選ぶ</button>
+    </div>
   </div>
 
   <!-- ② 編集 -->
   <div class="card" id="editCard" hidden>
+    <p class="back-link" id="backToListLink" hidden>← 一覧に戻る</p>
     <div class="msec">項目を編集</div>
     <div class="field-group">
       <div class="field-label">タイトル</div>
@@ -46,14 +68,6 @@
       <div class="field-label">作成者</div>
       <input type="text" class="text-input" id="fAuthor" placeholder="（未設定）">
       <p class="field-hint-plain">Wordなどで作成したPDFは、本名やアカウント名が自動で入っていることがあります</p>
-    </div>
-    <div class="field-group">
-      <div class="field-label">件名</div>
-      <input type="text" class="text-input" id="fSubject" placeholder="（未設定）">
-    </div>
-    <div class="field-group">
-      <div class="field-label">キーワード（カンマ区切り）</div>
-      <input type="text" class="text-input" id="fKeywords" placeholder="（未設定）">
     </div>
 
     <details class="advanced">
@@ -78,7 +92,7 @@
     <div class="actions-row">
       <button type="button" class="btn-outline" id="clearAllBtn">すべての項目を空にする</button>
     </div>
-    <p class="field-hint-plain">※タイトル・作成者・件名・キーワード・作成アプリ・PDF変換アプリをまとめて空にします（個人情報を消したいときに）</p>
+    <p class="field-hint-plain">※タイトル・作成者・作成アプリ・PDF変換アプリをまとめて空にします（個人情報を消したいときに）</p>
 
     <div class="actions-row">
       <button type="button" class="btn-primary btn-big" id="saveBtn">この内容でPDFを保存</button>
