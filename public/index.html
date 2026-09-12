@@ -8,132 +8,142 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://pdf-metadata.pages.dev/">
 <meta property="og:title" content="PDFメタデータ編集ツール">
-<meta property="og:description" content="PDFのタイトル・作成者などの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル設定にも使えます。フォルダを選んで中のPDFのメタデータを一覧表示することもできます。送信なし・ローカルで完結。">
+<meta property="og:description" content="PDFのタイトル・作成者などの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル設定にも使えます。フォルダを選んで中のPDFをExcelのような一覧で編集することもできます。送信なし・ローカルで完結。">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="PDFメタデータ編集ツール">
-<meta name="twitter:description" content="PDFのタイトル・作成者などの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル設定にも使えます。フォルダを選んで中のPDFのメタデータを一覧表示することもできます。送信なし・ローカルで完結。">
+<meta name="twitter:description" content="PDFのタイトル・作成者などの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル設定にも使えます。フォルダを選んで中のPDFをExcelのような一覧で編集することもできます。送信なし・ローカルで完結。">
 <!-- ライブラリはCDN。※PDF自体はどこにも送信されません。読み込むのはライブラリのJSだけです。 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
 
-  <h1 class="page-title">PDFメタデータ編集</h1>
-  <p class="page-desc">PDFの「文書のプロパティ」（タイトル・作成者など）を編集します。個人情報が入っている項目を消す、インターネットに公開するときに検索されやすいタイトルを付ける、といった用途に使えます。処理はこのブラウザの中だけで行われ、外部には送信されません。</p>
+  <!-- ── サイドバー ── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="app-title">PDFメタデータ編集</div>
+      <div class="app-sub">※外部への送信はなくローカルで完結するツールです。ご利用前に<a href="#disclaimer">免責事項</a>をご覧ください。</div>
+    </div>
 
-  <!-- ① ファイル選択 -->
-  <div class="card" id="uploadCard">
-    <label class="dropzone" id="dropzone">
-      <svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
-      </svg>
-      <p id="dropHint">ここをクリックしてPDFを選ぶ<br><span class="dropzone-sub">またはファイルをドラッグ＆ドロップ</span></p>
+    <div class="section">
+      <div class="shead">■ ファイル選択</div>
+      <label class="filebtn" id="dropzone">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+        </svg>
+        <span id="dropHint">PDFを選ぶ</span>
+        <input id="fileInput" type="file" accept="application/pdf">
+      </label>
       <div class="filename" id="filename" hidden></div>
-      <input type="file" id="fileInput" accept="application/pdf">
-    </label>
+      <p class="cap">※クリックのほかドラッグ＆ドロップでも選べます</p>
 
-    <div class="or-divider"><span>または</span></div>
-
-    <button type="button" class="btn-outline btn-big" id="pickFolderBtn">
-      <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-        <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/>
-      </svg>
-      <span>フォルダを選んで一覧表示</span>
-    </button>
-    <input type="file" id="folderInput" webkitdirectory multiple hidden>
-    <p class="field-hint-plain">フォルダ内のPDFのタイトル・作成者を一覧表示し、1件ずつ編集できます</p>
-    <p class="field-hint-plain">※ブラウザの確認ダイアログ（「アップロードしますか？」等）が表示されますが、これはファイルを読み取る許可の確認で、外部への送信はありません</p>
-  </div>
-
-  <!-- ①' フォルダ内一覧 -->
-  <div class="card" id="folderListCard" hidden>
-    <div class="msec">フォルダ内のPDF</div>
-    <p class="field-hint-plain" id="folderListSummary"></p>
-    <div class="folder-list" id="folderList"></div>
-    <div class="actions-row">
-      <button type="button" class="btn-outline" id="folderBackBtn">別のファイル・フォルダを選ぶ</button>
-    </div>
-  </div>
-
-  <!-- ② 編集 -->
-  <div class="card" id="editCard" hidden>
-    <p class="back-link" id="backToListLink" hidden>← 一覧に戻る</p>
-    <div class="msec">項目を編集</div>
-    <div class="field-group">
-      <div class="field-label">タイトル</div>
-      <input type="text" class="text-input" id="fTitle" placeholder="（未設定）">
-      <p class="field-hint-plain">インターネットに公開した場合、検索結果のタイトルとして使われることがあります</p>
-    </div>
-    <div class="field-group">
-      <div class="field-label">作成者</div>
-      <input type="text" class="text-input" id="fAuthor" placeholder="（未設定）">
-      <p class="field-hint-plain">Wordなどで作成したPDFは、本名やアカウント名が自動で入っていることがあります</p>
+      <button type="button" class="filebtn" id="pickFolderBtn">
+        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31L.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3zm-8.322.12q.322-.119.684-.12h5.396l-.707-.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139z"/>
+        </svg>
+        <span>フォルダを選んで一覧表示</span>
+      </button>
+      <input type="file" id="folderInput" webkitdirectory multiple hidden>
+      <p class="cap">※フォルダ直下のPDFのタイトル・作成者を一覧表示し、Excelのように直接書き換えられます（サブフォルダは対象外）</p>
+      <p class="cap">※ブラウザの確認ダイアログ（「アップロードしますか？」等）が表示されますが、これはファイルを読み取る許可の確認で、外部への送信はありません</p>
     </div>
 
-    <details class="advanced">
-      <summary>詳しい項目（作成アプリ・作成日など）</summary>
+    <div class="section" id="singleActionsSection" hidden>
+      <div class="shead">■ 保存</div>
+      <div class="row">
+        <button type="button" id="clearAllBtn">すべての項目を空にする</button>
+      </div>
+      <button type="button" class="primary" id="saveBtn">この内容でPDFを保存</button>
+      <p class="cap" id="saveStatus" aria-live="polite"></p>
+    </div>
 
+    <div class="section" id="folderActionsSection" hidden>
+      <div class="shead">■ 一括操作</div>
+      <div class="row">
+        <button type="button" id="folderClearAllBtn">すべて空にする</button>
+      </div>
+      <button type="button" class="primary" id="folderSaveAllBtn">まとめて保存してダウンロード</button>
+      <p class="cap" id="folderSaveAllStatus" aria-live="polite"></p>
+    </div>
+
+    <div id="secondary-info">
+      <div class="section">
+        <div class="shead">■ このツールについて</div>
+        <div class="cap">※PDFの「文書のプロパティ」を編集するツールです。個人情報を含む項目の削除や、検索されやすいタイトル設定に使えます。</div>
+        <a class="gh-link" href="https://github.com/minnanosaiban/pdf-metadata" target="_blank" rel="noopener" title="ソースコード（GitHub）" aria-label="ソースコード（GitHub）">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+          </svg>
+        </a>
+      </div>
+
+      <div class="section" id="disclaimer">
+        <div class="shead">■ 免責事項</div>
+        <div class="cap">※本ツールは無保証で提供されます（現状有姿）。</div>
+        <div class="cap">※処理はすべてお使いのブラウザ内で完結しPDFは外部送信されませんが、ご利用環境に起因する情報漏えいについて作成者は責任を負いません。</div>
+        <div class="cap">※本ツールの利用により生じたいかなる損害についても作成者は責任を負わず、本ツールは法的助言を提供するものではありません。</div>
+        <div class="cap">※本ツールが書き換えるのはPDFの「文書のプロパティ」欄のみです。ページ本文の文字・画像や、PDFによっては別途埋め込まれているXMPメタデータまでは削除されません。個人情報の削除が目的の場合は、保存後にPDFを開いて本文中に氏名等が残っていないか、あわせてご確認ください。</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── 本文 ── -->
+  <main class="main">
+    <h1 class="main-title">メタデータを編集</h1>
+    <p id="status">左の「PDFを選ぶ」で1件、または「フォルダを選んで一覧表示」で複数まとめて編集できます。</p>
+
+    <!-- 単一ファイル編集 -->
+    <div id="editArea" hidden>
       <div class="field-group">
-        <div class="field-label">作成アプリ（例: Microsoft Word）</div>
-        <input type="text" class="text-input" id="fCreator" placeholder="（未設定）">
+        <div class="field-label">タイトル</div>
+        <input type="text" class="text-input" id="fTitle" placeholder="（未設定）">
+        <p class="field-hint-plain">インターネットに公開した場合、検索結果のタイトルとして使われることがあります</p>
       </div>
       <div class="field-group">
-        <div class="field-label">PDF変換アプリ（例: Adobe Acrobat）</div>
-        <input type="text" class="text-input" id="fProducer" placeholder="（未設定）">
+        <div class="field-label">作成者</div>
+        <input type="text" class="text-input" id="fAuthor" placeholder="（未設定）">
+        <p class="field-hint-plain">Wordなどで作成したPDFは、本名やアカウント名が自動で入っていることがあります</p>
       </div>
 
-      <div class="field-group readonly-info">
-        <div class="info-row"><span class="info-label">作成日</span><span class="info-value" id="iCreationDate">—</span></div>
-        <div class="info-row"><span class="info-label">更新日</span><span class="info-value" id="iModDate">—</span></div>
-        <p class="field-hint-plain">作成日・更新日はこのツールでは編集できません。保存すると更新日は自動的に現在の日時になります。</p>
+      <details class="advanced">
+        <summary>詳しい項目（作成アプリ・作成日など）</summary>
+
+        <div class="field-group">
+          <div class="field-label">作成アプリ（例: Microsoft Word）</div>
+          <input type="text" class="text-input" id="fCreator" placeholder="（未設定）">
+        </div>
+        <div class="field-group">
+          <div class="field-label">PDF変換アプリ（例: Adobe Acrobat）</div>
+          <input type="text" class="text-input" id="fProducer" placeholder="（未設定）">
+        </div>
+
+        <div class="field-group readonly-info">
+          <div class="info-row"><span class="info-label">作成日</span><span class="info-value" id="iCreationDate">—</span></div>
+          <div class="info-row"><span class="info-label">更新日</span><span class="info-value" id="iModDate">—</span></div>
+          <p class="field-hint-plain">作成日・更新日はこのツールでは編集できません。保存すると更新日は自動的に現在の日時になります。</p>
+        </div>
+      </details>
+    </div>
+
+    <!-- フォルダ一覧（Excel風） -->
+    <div id="folderArea" hidden>
+      <div class="table-scroll">
+        <table class="meta-table">
+          <thead>
+            <tr>
+              <th class="col-name">ファイル名</th>
+              <th class="col-field">タイトル</th>
+              <th class="col-field">作成者</th>
+              <th class="col-action">保存</th>
+            </tr>
+          </thead>
+          <tbody id="folderTableBody"></tbody>
+        </table>
       </div>
-    </details>
-
-    <div class="actions-row">
-      <button type="button" class="btn-outline" id="clearAllBtn">すべての項目を空にする</button>
     </div>
-    <p class="field-hint-plain">※タイトル・作成者・作成アプリ・PDF変換アプリをまとめて空にします（個人情報を消したいときに）</p>
 
-    <div class="actions-row">
-      <button type="button" class="btn-primary btn-big" id="saveBtn">この内容でPDFを保存</button>
-    </div>
-    <p class="field-hint" id="saveStatus" aria-live="polite" hidden></p>
-  </div>
+  </main>
 
-  <!-- ③ 結果 -->
-  <div class="card" id="resultCard" hidden>
-    <p class="result-summary">編集したPDFを作成しました。</p>
-    <div class="result-row">
-      <a class="result-item" id="downloadLink" download>
-        <span class="result-item-label">
-          <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>
-          ダウンロード
-        </span>
-      </a>
-    </div>
-    <div class="reset-row">
-      <button type="button" class="btn-outline" id="resetBtn">別のファイルを編集する</button>
-    </div>
-  </div>
-
-  <!-- エラー -->
-  <div class="card error-card" id="errorCard" hidden>
-    <p id="errorText"></p>
-  </div>
-
-  <!-- 免責事項 -->
-  <div class="card disclaimer-card">
-    <div class="disclaimer-title">免責事項</div>
-    <p class="disclaimer-text">※本ツールは無保証で提供されます（現状有姿）。</p>
-    <p class="disclaimer-text">※処理はすべてお使いのブラウザ内で完結しPDFは外部送信されませんが、ご利用環境に起因する情報漏えいについて作成者は責任を負いません。</p>
-    <p class="disclaimer-text">※本ツールの利用により生じたいかなる損害についても作成者は責任を負わず、本ツールは法的助言を提供するものではありません。</p>
-    <p class="disclaimer-text">※本ツールが書き換えるのはPDFの「文書のプロパティ」欄のみです。ページ本文の文字・画像や、PDFによっては別途埋め込まれているXMPメタデータまでは削除されません。個人情報の削除が目的の場合は、保存後にPDFを開いて本文中に氏名等が残っていないか、あわせてご確認ください。</p>
-  </div>
-
-  <p class="footer-note">ライブラリ: pdf-lib。処理はブラウザ内のみで行われます。</p>
-
-</div>
 <script src="app.js"></script>
 </body>
 </html>
