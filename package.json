@@ -1,0 +1,13 @@
+{
+  "name": "pdf-metadata",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PDFのタイトル・作成者などの文書プロパティを編集するツール（ブラウザ完結・Cloudflare Pages）",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.105.0"
+  }
+}

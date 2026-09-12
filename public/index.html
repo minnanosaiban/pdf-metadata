@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDFメタデータ編集</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://pdf-metadata.pages.dev/">
+<meta property="og:title" content="PDFメタデータ編集ツール">
+<meta property="og:description" content="PDFのタイトル・作成者・キーワードなどの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル・キーワード設定にも使えます。送信なし・ローカルで完結。">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PDFメタデータ編集ツール">
+<meta name="twitter:description" content="PDFのタイトル・作成者・キーワードなどの文書プロパティをブラウザだけで編集。個人情報を含む項目の削除にも、公開時に検索されやすくするタイトル・キーワード設定にも使えます。送信なし・ローカルで完結。">
+<!-- ライブラリはCDN。※PDF自体はどこにも送信されません。読み込むのはライブラリのJSだけです。 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="page-title">PDFメタデータ編集</h1>
+  <p class="page-desc">PDFの「文書のプロパティ」（タイトル・作成者・件名・キーワードなど）を編集します。個人情報が入っている項目を消す、インターネットに公開するときに検索されやすいタイトルを付ける、といった用途に使えます。処理はこのブラウザの中だけで行われ、外部には送信されません。</p>
+
+  <!-- ① ファイル選択 -->
+  <div class="card" id="uploadCard">
+    <label class="dropzone" id="dropzone">
+      <svg class="icon-lg" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+      </svg>
+      <p id="dropHint">ここをクリックしてPDFを選ぶ<br><span class="dropzone-sub">またはファイルをドラッグ＆ドロップ</span></p>
+      <div class="filename" id="filename" hidden></div>
+      <input type="file" id="fileInput" accept="application/pdf">
+    </label>
+  </div>
+
+  <!-- ② 編集 -->
+  <div class="card" id="editCard" hidden>
+    <div class="msec">項目を編集</div>
+    <div class="field-group">
+      <div class="field-label">タイトル</div>
+      <input type="text" class="text-input" id="fTitle" placeholder="（未設定）">
+      <p class="field-hint-plain">インターネットに公開した場合、検索結果のタイトルとして使われることがあります</p>
+    </div>
+    <div class="field-group">
+      <div class="field-label">作成者</div>
+      <input type="text" class="text-input" id="fAuthor" placeholder="（未設定）">
+      <p class="field-hint-plain">Wordなどで作成したPDFは、本名やアカウント名が自動で入っていることがあります</p>
+    </div>
+    <div class="field-group">
+      <div class="field-label">件名</div>
+      <input type="text" class="text-input" id="fSubject" placeholder="（未設定）">
+    </div>
+    <div class="field-group">
+      <div class="field-label">キーワード（カンマ区切り）</div>
+      <input type="text" class="text-input" id="fKeywords" placeholder="（未設定）">
+    </div>
+
+    <details class="advanced">
+      <summary>詳しい項目（作成アプリ・作成日など）</summary>
+
+      <div class="field-group">
+        <div class="field-label">作成アプリ（例: Microsoft Word）</div>
+        <input type="text" class="text-input" id="fCreator" placeholder="（未設定）">
+      </div>
+      <div class="field-group">
+        <div class="field-label">PDF変換アプリ（例: Adobe Acrobat）</div>
+        <input type="text" class="text-input" id="fProducer" placeholder="（未設定）">
+      </div>
+
+      <div class="field-group readonly-info">
+        <div class="info-row"><span class="info-label">作成日</span><span class="info-value" id="iCreationDate">—</span></div>
+        <div class="info-row"><span class="info-label">更新日</span><span class="info-value" id="iModDate">—</span></div>
+        <p class="field-hint-plain">作成日・更新日はこのツールでは編集できません。保存すると更新日は自動的に現在の日時になります。</p>
+      </div>
+    </details>
+
+    <div class="actions-row">
+      <button type="button" class="btn-outline" id="clearAllBtn">すべての項目を空にする</button>
+    </div>
+    <p class="field-hint-plain">※タイトル・作成者・件名・キーワード・作成アプリ・PDF変換アプリをまとめて空にします（個人情報を消したいときに）</p>
+
+    <div class="actions-row">
+      <button type="button" class="btn-primary btn-big" id="saveBtn">この内容でPDFを保存</button>
+    </div>
+    <p class="field-hint" id="saveStatus" aria-live="polite" hidden></p>
+  </div>
+
+  <!-- ③ 結果 -->
+  <div class="card" id="resultCard" hidden>
+    <p class="result-summary">編集したPDFを作成しました。</p>
+    <div class="result-row">
+      <a class="result-item" id="downloadLink" download>
+        <span class="result-item-label">
+          <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/><path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/></svg>
+          ダウンロード
+        </span>
+      </a>
+    </div>
+    <div class="reset-row">
+      <button type="button" class="btn-outline" id="resetBtn">別のファイルを編集する</button>
+    </div>
+  </div>
+
+  <!-- エラー -->
+  <div class="card error-card" id="errorCard" hidden>
+    <p id="errorText"></p>
+  </div>
+
+  <!-- 免責事項 -->
+  <div class="card disclaimer-card">
+    <div class="disclaimer-title">免責事項</div>
+    <p class="disclaimer-text">※本ツールは無保証で提供されます（現状有姿）。</p>
+    <p class="disclaimer-text">※処理はすべてお使いのブラウザ内で完結しPDFは外部送信されませんが、ご利用環境に起因する情報漏えいについて作成者は責任を負いません。</p>
+    <p class="disclaimer-text">※本ツールの利用により生じたいかなる損害についても作成者は責任を負わず、本ツールは法的助言を提供するものではありません。</p>
+    <p class="disclaimer-text">※本ツールが書き換えるのはPDFの「文書のプロパティ」欄のみです。ページ本文の文字・画像や、PDFによっては別途埋め込まれているXMPメタデータまでは削除されません。個人情報の削除が目的の場合は、保存後にPDFを開いて本文中に氏名等が残っていないか、あわせてご確認ください。</p>
+  </div>
+
+  <p class="footer-note">ライブラリ: pdf-lib。処理はブラウザ内のみで行われます。</p>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
