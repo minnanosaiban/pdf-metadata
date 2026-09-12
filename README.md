@@ -1,5 +1,7 @@
 # pdf-metadata
 
+🔗 https://pdf-metadata.pages.dev/
+
 ## このツールについて
 
 - PDFの「文書のプロパティ」（タイトル・作成者・件名・キーワード・作成アプリなど）を編集するツールです。
